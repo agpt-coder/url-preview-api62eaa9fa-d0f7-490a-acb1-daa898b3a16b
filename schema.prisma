@@ -1,0 +1,111 @@
+// datasource db defines the database connection settings.
+// It is configured for PostgreSQL and uses an environment variable for the connection URL.
+// The 'extensions' feature enables the use of PostgreSQL-specific data types.
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+}
+
+// generator db configures Prisma Client settings.
+// It is set up to use Prisma Client Python with asyncio interface and specific features.
+generator db {
+  provider             = "prisma-client-py"
+  interface            = "asyncio"
+  recursive_type_depth = 5
+  previewFeatures      = ["postgresqlExtensions"]
+}
+
+model User {
+  id             String         @id @default(dbgenerated("gen_random_uuid()"))
+  email          String         @unique
+  hashedPassword String
+  role           UserRole       @default(USER)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  rateLimits     RateLimit[]
+  subscriptions  Subscription[]
+  pagePreviews   PagePreview[]
+  apiKeys        ApiKey[]
+}
+
+model PagePreview {
+  id           String         @id @default(dbgenerated("gen_random_uuid()"))
+  url          String
+  title        String
+  description  String?
+  imageUrl     String?
+  userId       String
+  User         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  ContentFetch ContentFetch[]
+}
+
+model RateLimit {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  userId    String
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  requests  Int
+  limit     Int
+  resetAt   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Subscription {
+  id        String           @id @default(dbgenerated("gen_random_uuid()"))
+  userId    String
+  User      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      SubscriptionType
+  startDate DateTime
+  endDate   DateTime
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model ApiKey {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  key       String   @unique
+  userId    String
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  scope     ApiScope
+}
+
+model ContentFetch {
+  id            String      @id @default(dbgenerated("gen_random_uuid()"))
+  pagePreviewId String
+  status        FetchStatus
+  url           String
+  response      String?
+  error         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  PagePreview   PagePreview @relation(fields: [pagePreviewId], references: [id], onDelete: Cascade)
+}
+
+enum UserRole {
+  ADMIN
+  USER
+  DEVELOPER
+}
+
+enum SubscriptionType {
+  FREE
+  MONTHLY
+  YEARLY
+}
+
+enum ApiScope {
+  READ
+  WRITE
+  DELETE
+}
+
+enum FetchStatus {
+  PENDING
+  SUCCESS
+  ERROR
+}
+

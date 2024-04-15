@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "url-preview-api"
+version = "0.1.0"
+description = "To accomplish the task of creating an endpoint that accepts a URL, retrieves webpage content, extracts relevant metadata, generates a preview snippet including the page title, description, and thumbnail image, and returns the structured preview data for use in link sharing and embedding, the following plan is proposed based on the information gathered and tools available:"
+authors = ["AutoGPT <info@agpt.co>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.11"
+beautifulsoup4 = "^4.9.3"
+fastapi = "^0.78.0"
+httpx = "*"
+passlib = {version = "^1.7.4", extras = ["bcrypt"]}
+prisma = "*"
+pydantic = "*"
+requests = "^2.28.1"
+uvicorn = "*"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
